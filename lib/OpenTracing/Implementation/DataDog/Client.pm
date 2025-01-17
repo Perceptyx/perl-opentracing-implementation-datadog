@@ -54,10 +54,8 @@ use Carp;
 use HTTP::Request ();
 use JSON::MaybeXS qw(JSON);
 use LWP::UserAgent;
-use Math::BigInt;
 use PerlX::Maybe qw/maybe provided/;
 use Regexp::Common qw/URI/;
-use Scalar::Util qw/blessed/;
 use Types::Standard qw/ArrayRef Bool Enum HasMethods Maybe Str/;
 use Types::Common::Numeric qw/IntRange/;
 
@@ -453,8 +451,8 @@ sub to_struct {
     if %meta_data;
     
     my $data = {
-        trace_id  => _cast_to_bigint($context->trace_id),
-        span_id   => _cast_to_bigint($context->span_id),
+        trace_id  => $context->trace_id,
+        span_id   => $context->span_id,
         resource  => $context->get_resource_name,
         service   => $context->get_service_name,
         
@@ -475,7 +473,7 @@ sub to_struct {
         duration  => nano_seconds( $span->duration() ),
         
         maybe
-        parent_id => _cast_to_bigint($span->get_parent_span_id()),
+        parent_id => $span->get_parent_span_id(),
         
         provided _is_with_errors( $span ),
         error     => 1,
@@ -770,20 +768,6 @@ sub _span_buffer_threshold_reached {
     
     return $self->_span_buffer_size >= $self->span_buffer_threshold
 }
-
-# _cast_to_bigint
-#
-# Returns the argument as a Math::BigInt object unless it is undef or already an object
-#
-sub _cast_to_bigint {
-    my $number = shift;
-
-    return unless defined $number;
-    return $number if blessed($number);
-
-    return Math::BigInt->new($number);
-}
-
 
 
 # DEMOLISH
